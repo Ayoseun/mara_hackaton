@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.7.0 <0.9.0;
+pragma experimental ABIEncoderV2;
 
 
 
@@ -33,7 +34,7 @@ contract Diam is ReentrancyGuard{
     address private admin;
 
 
-    uint internal  _user;
+    uint internal  _ranger;
 
     uint internal _donor;
 
@@ -43,11 +44,11 @@ contract Diam is ReentrancyGuard{
 
 
 
-    mapping(uint => User) private users;
+    mapping(uint => Ranger) private rangers;
 
     mapping(uint => Donor) private donors;
 
-    uint256 [] usersArray;
+    uint256 [] rangersArray;
 
     uint256[] donorsArray;
 
@@ -56,18 +57,17 @@ contract Diam is ReentrancyGuard{
 
 
 
-    struct User {
+    struct Ranger {
         uint256 idNumber;
         uint256 dateOfBirth; // weight is accumulated by delegation
         string lastName;
-        string nationality; // weight is accumulated by delegation
+        string userAddress; // weight is accumulated by delegation
         string gender; // weight is accumulated by delegation
         string  firstName;
         string middleName;
         uint256 accountNumber; // weight is accumulated by delegation
         bool isActive;  // if true, that person already voted
         uint256 phone;   // index of the voted proposal
-        string[] data;
     }
 
 
@@ -92,7 +92,7 @@ contract Diam is ReentrancyGuard{
 
 
     event AdminChange(address indexed oldAdmin, address indexed newAdmin);
-    event AddedUser(User  created);
+    event AddedRanger(Ranger  created);
     event AddedDonor(Donor  created);
 
 
@@ -137,46 +137,47 @@ contract Diam is ReentrancyGuard{
 
 
    
-        function addUser(string memory _country,string memory _gender,uint256 _dob,uint _phone,string memory _firstName,string memory  _lastName,uint256  _account) public{
+        function addUser(string memory _userAdd,string memory _gender,uint256 _dob,uint _phone,string memory _firstName,string memory  _lastName,uint256  _account) public{
         require(
             msg.sender == admin,
             "Only chairperson can give right to vote."
         );
         
         require(
-            !users[_user].isActive,
-            "The voter already voted."
+            !rangers[_ranger].isActive,
+            "This user is deactivatyed by admin"
         );
 
-        User storage userData = users[_user];
+        Ranger storage userData = rangers[_ranger];
         
-        userData.nationality = _country;
+
         userData.dateOfBirth = _dob;
+        userData.userAddress=_userAdd;
         userData.phone = _phone;
         userData.gender = _gender;
         userData.firstName = _firstName;
         userData.lastName = _lastName;
         userData.accountNumber = _account;
         userData.isActive = true;
-        usersArray.push(_user);
-         emit AddedUser(userData);  
-        _user++;
+        rangersArray.push(_ranger);
+         emit AddedRanger(userData);  
+        _ranger++;
     }
 
 
 
       //get all users by id number returns integer and string
      //it is set to admin only
-    function getUser(uint256 _id) public isAdmin view returns (User memory) {
-                 User memory userData;
-      for (uint i = 0; i < _user; i++) {
-          User storage user = users[i];
-         userData =user;
-          if (userData.idNumber==_id) {
-             return userData;
+    function getRanger(uint256 _id) public isAdmin view returns (Ranger memory) {
+                 Ranger memory rangerData;
+      for (uint i = 0; i < _ranger; i++) {
+          Ranger storage ranger = rangers[i];
+         rangerData =ranger;
+          if (rangerData.idNumber==_id) {
+             return rangerData;
           }
       }
- return userData;
+ return rangerData;
     }
        
 
@@ -211,11 +212,11 @@ contract Diam is ReentrancyGuard{
 
 
 
-      function getAllUsers() public view returns (User[] memory){
-      User[]    memory id = new User[](_user);
-      for (uint i = 0; i < _user; i++) {
-          User storage user = users[i];
-          id[i] = user;
+      function getAllUsers() public view returns (Ranger[] memory){
+      Ranger[]    memory id =new Ranger[](_ranger);
+      for (uint i = 0; i < _ranger; i++) {
+          Ranger storage ranger = rangers[i];
+          id[i] = ranger;
       }
       return id;
   }
